@@ -18,49 +18,42 @@
 
     <input type="text" placeholder="请输入内容" id="txt">
     <input type="button" value="发送" onclick="sendMsg()">
+    <input type="button" value="关闭连接" onclick="closeConn()">
 
 </body>
 
-<script src="/static/js/jquery-3.7.1.min.js"> </script>
 <script>
-    USER_ID = "{{ uid }}";
+    {#用户只需发起http请求，ws请求由js完成#}
+    socket = new WebSocket("ws://127.0.0.1:8000/wc/{{ rid }}");
+
+    {#执行self.accept()时自动触发#}
+    socket.onopen = function (event){
+        let tag = document.createElement("div");
+        tag.innerText = '连接成功';
+        document.getElementById("message").appendChild(tag);
+    }
+
+    socket.onmessage = function (event){
+        let tag = document.createElement('div');
+        tag.innerText = event.data;
+        document.getElementById("message").appendChild(tag);
+    }
+
+    socket.onclose = function (event){
+        let tag = document.createElement('div');
+        tag.innerText = '断开连接';
+        document.getElementById('message').appendChild(tag);
+    }
 
     function sendMsg(){
-        var text = $("#txt").val();
-
-        $.ajax({
-            url : "/send/msg/",
-            type : "GET",
-            data : {
-                text : text
-            },
-            success : function (res){
-                console.log("ok",res)
-            }
-        })
+        let tag = document.getElementById('txt');
+        {#前端直接向后端发起请求,后端处理后触发前端钩子发送信息#}
+        socket.send(tag.value);
     }
 
-    function getMsg(){
-        $.ajax({
-            url: "/get/msg/",
-            type: "GET",
-            dataType:"JSON",
-            data: {
-                uid:USER_ID
-            },
-            success: function (res) {
-                if (res.status){
-                    var tag = $("<div>");
-                    tag.text(res.data);
-                    $("#message").append(tag);
-                }
-                getMsg();
-            }
-        })
+    function closeConn(){
+        socket.close();
     }
 
-    $(function (){
-        getMsg()
-    })
 </script>
 </html>
