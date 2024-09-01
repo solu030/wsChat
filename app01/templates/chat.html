@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ChatRoom</title>
+    <style>
+        .chatMsg{
+            height: 300px;
+            width: 100%;
+            border: 4px solid silver;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chatMsg" id="message">
+    </div>
+
+    <input type="text" placeholder="请输入内容" id="txt">
+    <input type="button" value="发送" onclick="sendMsg()">
+
+</body>
+
+<script src="/static/js/jquery-3.7.1.min.js"> </script>
+<script>
+    USER_ID = "{{ uid }}";
+
+    function sendMsg(){
+        var text = $("#txt").val();
+
+        $.ajax({
+            url : "/send/msg/",
+            type : "GET",
+            data : {
+                text : text
+            },
+            success : function (res){
+                console.log("ok",res)
+            }
+        })
+    }
+
+    function getMsg(){
+        $.ajax({
+            url: "/get/msg/",
+            type: "GET",
+            dataType:"JSON",
+            data: {
+                uid:USER_ID
+            },
+            success: function (res) {
+                if (res.status){
+                    var tag = $("<div>");
+                    tag.text(res.data);
+                    $("#message").append(tag);
+                }
+                getMsg();
+            }
+        })
+    }
+
+    $(function (){
+        getMsg()
+    })
+</script>
+</html>
